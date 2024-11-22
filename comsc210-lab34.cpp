@@ -50,6 +50,46 @@ public:
         }
     }
 
+    void shortestPathFromSource(int start){
+        // Min-heap priority queue: (distance, node)
+        priority_queue<Pair, vector<Pair>, greater<Pair>> pq;
+
+        vector<int> dist(SIZE, INT_MAX);
+        dist[start] = 0;
+        pq.push({0, start});
+
+        // Distance vector initialized to infinity
+        while (!pq.empty()){
+            int currentDist = pq.top().first;
+            int currentNode = pq.top().second;
+            pq.pop();
+
+            // skip if we encouter a stale distance
+            if (currentDist > dist[currentNode]) continue;
+
+            for (auto &neighbor : adjList[currentNode]){
+                
+                int nextNode = neighbor.first;
+                int weight = neighbor.second;
+                
+                // Relaxation step
+                if (dist[currentNode] + weight < dist[nextNode]) {
+                    dist[nextNode] = dist[currentNode] + weight;
+                    pq.push({dist[nextNode], nextNode});
+                }
+            }
+        }
+
+        // Print shortest distances
+        cout << "Shortest paths from Stop " << start << ":\n";
+        for (int i = 0; i < SIZE; i++) {
+            if (dist[i] == INT_MAX)
+                cout << "Stop " << i << ": Unreachable\n";
+            else
+                cout << "Stop " << i << ": " << dist[i] << " mins\n";
+        }
+    }
+
     // DFS using recursion
     void DFS(int start) {
         vector<bool> visited(SIZE, false);
@@ -141,7 +181,8 @@ int main() {
         cout << "1. View Network\n";
         cout << "2. Find Reachable Stops (DFS)\n";
         cout << "3. Find Shortest Path (BFS)\n";
-        cout << "4. Exit\n";
+        cout << "4. Find Shortest Paths from Stop 0 (Dijkstra)\n";
+        cout << "5. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
 
@@ -168,6 +209,9 @@ int main() {
                     cout << "Invalid stop numbers.\n";
                 break;
             case 4:
+                graph.shortestPathFromSource(0);
+                break;
+            case 5:
                 cout << "Exiting application.\n";
                 return 0;
             default:
