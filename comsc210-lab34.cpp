@@ -50,6 +50,45 @@ public:
         }
     }
 
+    void findMST(){
+
+        priority_queue<Pair, vector<Pair>, greater<Pair>> pq; // Min-heap (weight, node)
+        vector <bool> inMST(SIZE, false);   // Track included nodes
+        vector <Edge> mstEdges;             // Edges included in MST
+        int totalWeight = 0;
+
+        pq.push({0,0}); // Start with node 0 (weight, node)
+
+        while (!pq.empty()){
+            int weight = pq.top().first;
+            int node = pq.top().second;
+            pq.pop();
+
+            if (inMST[node]) continue; // Skip if already included
+            inMST[node] = true;     // Mark node as included
+            totalWeight += weight;
+
+            // Add valid edges to MST
+            for (auto &neighbor : adjList[node]){
+                int nextNode = neighbor.first;
+                int nextWeight = neighbor.second;
+                if (!inMST[nextNode]) {
+                    pq.push({nextWeight, nextNode});
+                    mstEdges.push_back({node, nextNode, nextWeight});
+                }
+            }
+        }
+        // Output MST details
+        cout << "Minimum Spanning Tree (MST):\n";
+        for (auto &edge : mstEdges) {
+            cout << "Edge: Stop " << edge.src << " -> Stop " << edge.dest 
+                 << " (Time: " << edge.weight << " mins)\n";
+        }
+        cout << "Total Weight (Time): " << totalWeight << " mins\n";
+}
+
+
+
     void shortestPathFromSource(int start){
         // Min-heap priority queue: (distance, node)
         priority_queue<Pair, vector<Pair>, greater<Pair>> pq;
@@ -182,7 +221,8 @@ int main() {
         cout << "2. Find Reachable Stops (DFS)\n";
         cout << "3. Find Shortest Path (BFS)\n";
         cout << "4. Find Shortest Paths from Stop 0 (Dijkstra)\n";
-        cout << "5. Exit\n";
+        cout << "5. Find Minimum Spanning Tree (MST)\n";
+        cout << "6. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
 
@@ -212,6 +252,9 @@ int main() {
                 graph.shortestPathFromSource(0);
                 break;
             case 5:
+                graph.findMST();
+                break;
+            case 6:
                 cout << "Exiting application.\n";
                 return 0;
             default:
