@@ -9,36 +9,40 @@ using namespace std;
 
 const int SIZE = 11;
 
+// Struct to represent an edge in the graph
 struct Edge {
-    int src, dest, weight;
+    int src, dest, weight;  // source node, destination node, weight of the edge
 };
 
 typedef pair<int, int> Pair;  // Creates alias 'Pair' for the pair<int,int> data type
 
+// Class to represent a graph using adjacency list
 class Graph {
 public:
     // a vector of vectors of Pairs to represent an adjacency list
     vector<vector<Pair>> adjList;
 
-    // Graph Constructor
+    // Graph Constructor - initializes the graph with edges
     Graph(vector<Edge> const &edges) {
-        // resize the vector to hold SIZE elements of type vector<Edge>
+        // Resize the adjacenty list to hold SIZE elements of type vector<Edge>
         adjList.resize(SIZE);
 
-        // add edges to the directed graph
+        // Add edges to the directed graph
         for (auto &edge: edges) {
             int src = edge.src;
             int dest = edge.dest;
             int weight = edge.weight;
 
-            // insert at the end
+            // Add edge from src to dest
             adjList[src].push_back(make_pair(dest, weight));
-            // for an undirected graph, add an edge from dest to src also
+            // Add edge from dest to src
             adjList[dest].push_back(make_pair(src, weight));
         }
     }
 
     // Print the graph's adjacency list
+    // Arguments: none
+    // retursn : no returns
     void printGraph() {
         //cout << "Graph's adjacency list:" << endl;
         cout << "City Transportation Network (Bus Stops):\n";
@@ -50,12 +54,15 @@ public:
         }
     }
 
+    // Computes the Minimum Spanning Tree (MST) using Prim's algorithm
+    // Arguments: none
+    // retursn : no returns
     void findMST(){
 
         priority_queue<Pair, vector<Pair>, greater<Pair>> pq; // Min-heap (weight, node)
-        vector <bool> inMST(SIZE, false);   // Track included nodes
-        vector <Edge> mstEdges;             // Edges included in MST
-        int totalWeight = 0;
+        vector <bool> inMST(SIZE, false);   // Tracks if a node is in the MST
+        vector <Edge> mstEdges;             // Stores edges in the MST
+        int totalWeight = 0;                // Total weight of the MST
 
         pq.push({0,0}); // Start with node 0 (weight, node)
 
@@ -66,9 +73,9 @@ public:
 
             if (inMST[node]) continue; // Skip if already included
             inMST[node] = true;     // Mark node as included
-            totalWeight += weight;
+            totalWeight += weight;  // Add edge weight to MST total
 
-            // Add valid edges to MST
+            // Add all valid edges from this node to MST
             for (auto &neighbor : adjList[node]){
                 int nextNode = neighbor.first;
                 int nextWeight = neighbor.second;
@@ -87,15 +94,16 @@ public:
         cout << "Total Weight (Time): " << totalWeight << " mins\n";
 }
 
-
-
+    //  Finds shortest paths from a source node using Dijkstra's algorithm
+    // Arguments: `start`: Starting node
+    // retursn : no returns
     void shortestPathFromSource(int start){
         // Min-heap priority queue: (distance, node)
         priority_queue<Pair, vector<Pair>, greater<Pair>> pq;
 
-        vector<int> dist(SIZE, INT_MAX);
-        dist[start] = 0;
-        pq.push({0, start});
+        vector<int> dist(SIZE, INT_MAX);  // Initialize distances to infinity
+        dist[start] = 0;                  // Distance to source is 0
+        pq.push({0, start});              // Push the source node to the heap
 
         // Distance vector initialized to infinity
         while (!pq.empty()){
@@ -103,15 +111,14 @@ public:
             int currentNode = pq.top().second;
             pq.pop();
 
-            // skip if we encouter a stale distance
+            // Skip if we encouter a stale distance
             if (currentDist > dist[currentNode]) continue;
 
             for (auto &neighbor : adjList[currentNode]){
-                
                 int nextNode = neighbor.first;
                 int weight = neighbor.second;
                 
-                // Relaxation step
+                // Relaxation step: Update distances to neighbors
                 if (dist[currentNode] + weight < dist[nextNode]) {
                     dist[nextNode] = dist[currentNode] + weight;
                     pq.push({dist[nextNode], nextNode});
@@ -129,20 +136,25 @@ public:
         }
     }
 
-    // DFS using recursion
+    // Performs Depth-First Search (DFS) traversal starting from a node
+    // Arguments: `start`: Starting node
+    // retursn : no returns
     void DFS(int start) {
-        vector<bool> visited(SIZE, false);
+        vector<bool> visited(SIZE, false);  // Tracks visited nodes
         cout << "DFS - Stops reachable from Stop " << start << ": \n";
-        DFSUtil(start, visited);
+        DFSUtil(start, visited);    // Start DFS from the starting node
         cout << endl;
     }
 
-    // Utility function for DFS
+    // Helper function for DFS
+    // Arguments: -`node`: Current node being visited, 
+    //            -`visited`: Boolean vector to track visited nodes
+    // retursn : no returns
     void DFSUtil(int node, vector<bool>& visited) {
         visited[node] = true;
-        cout << node << " ";
+        cout << node << " ";  // Print the current node
 
-        // Recur for all adjacent nodes
+        // Recursively visit all unvisited nodes
         for (auto& neighbor : adjList[node]) {
             if (!visited[neighbor.first]) {
                 DFSUtil(neighbor.first, visited);
@@ -150,11 +162,14 @@ public:
         }
     }
 
-    // BFS using queue
+    // Performs Breadth-First Search (BFS) to find shortest path between two nodes
+    // Arguments: -`node`: Current node being visited, 
+    //            -`target`: Target node
+    // retursn : no returns
     void BFS(int start, int target) {
-        vector<bool> visited(SIZE, false);
-        queue<int> q;
-        vector <int> parent (SIZE, -1); // Track paths
+        vector<bool> visited(SIZE, false);  // Tracks visited nodes
+        queue<int> q;                       // Queue for BFS
+        vector <int> parent (SIZE, -1);  // Stores parent for path reconstruction
         
         visited[start] = true;
         q.push(start);
@@ -164,10 +179,10 @@ public:
         while (!q.empty()) {
             int node = q.front();
             q.pop();
-            //cout << node << " ";
-            if (node == target) break;
 
-            // Visit all adjacent nodes
+            if (node == target) break; // Stop if target is reached
+
+            // Visit all unvisited neighbors
             for (auto& neighbor : adjList[node]) {
                 if (!visited[neighbor.first]) {
                     visited[neighbor.first] = true;
@@ -176,13 +191,13 @@ public:
                 }
             }
         }
-            // Reconstruct and print path
+        // Reconstruct and print the shortest path
         cout << "BFS - Shortest path from Stop " << start << " to Stop " << target << ": ";
         if (!visited[target]) {
             cout << "No path found.\n";
             return;
         }
-        stack<int> path;
+        stack<int> path;  // Stack to reconstruct path
         for (int v = target; v != -1; v = parent[v])
             path.push(v);
         while (!path.empty()) {
@@ -217,12 +232,12 @@ int main() {
         int choice, start, target;
     while (true) {
         cout << "\nCity Transportation Network Menu:\n";
-        cout << "1. View Network\n";
-        cout << "2. Find Reachable Stops (DFS)\n";
-        cout << "3. Find Shortest Path (BFS)\n";
-        cout << "4. Find Shortest Paths from Stop 0 (Dijkstra)\n";
-        cout << "5. Find Minimum Spanning Tree (MST)\n";
-        cout << "6. Exit\n";
+        cout << "[1] Display City Tranportation Network\n";
+        cout << "[2] Find Reachable Stops (DFS)\n";
+        cout << "[3] Find Shortest Path Between Stops(BFS)\n";
+        cout << "[4] Find Shortest Paths from Stop 0 (Dijkstra)\n";
+        cout << "[5] Find Minimum Spanning Tree (MST)\n";
+        cout << "[6] Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
 
