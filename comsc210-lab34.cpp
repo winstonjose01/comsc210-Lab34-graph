@@ -40,11 +40,12 @@ public:
 
     // Print the graph's adjacency list
     void printGraph() {
-        cout << "Graph's adjacency list:" << endl;
+        //cout << "Graph's adjacency list:" << endl;
+        cout << "City Transportation Network (Bus Stops):\n";
         for (int i = 0; i < adjList.size(); i++) {
-            cout << i << " --> ";
+            cout << "Stop " << i << " --> ";
             for (Pair v : adjList[i])
-                cout << "(" << v.first << ", " << v.second << ") ";
+                cout << "(Stop " << v.first << ", Time: " << v.second << " mins) ";
             cout << endl;
         }
     }
@@ -52,7 +53,7 @@ public:
     // DFS using recursion
     void DFS(int start) {
         vector<bool> visited(SIZE, false);
-        cout << "DFS starting from node " << start << ": \n";
+        cout << "DFS - Stops reachable from Stop " << start << ": \n";
         DFSUtil(start, visited);
         cout << endl;
     }
@@ -71,9 +72,10 @@ public:
     }
 
     // BFS using queue
-    void BFS(int start) {
+    void BFS(int start, int target) {
         vector<bool> visited(SIZE, false);
         queue<int> q;
+        vector <int> parent (SIZE, -1); // Track paths
         
         visited[start] = true;
         q.push(start);
@@ -83,16 +85,33 @@ public:
         while (!q.empty()) {
             int node = q.front();
             q.pop();
-            cout << node << " ";
+            //cout << node << " ";
+            if (node == target) break;
 
             // Visit all adjacent nodes
             for (auto& neighbor : adjList[node]) {
                 if (!visited[neighbor.first]) {
                     visited[neighbor.first] = true;
+                    parent[neighbor.first] = node;
                     q.push(neighbor.first);
                 }
             }
         }
+            // Reconstruct and print path
+        cout << "BFS - Shortest path from Stop " << start << " to Stop " << target << ": ";
+        if (!visited[target]) {
+            cout << "No path found.\n";
+            return;
+        }
+        stack<int> path;
+        for (int v = target; v != -1; v = parent[v])
+            path.push(v);
+        while (!path.empty()) {
+            cout << path.top();
+            path.pop();
+            if (!path.empty()) cout << " -> ";
+        }
+
         cout << endl;
     }
 };
@@ -112,11 +131,49 @@ int main() {
     Graph graph(edges);
 
     // Prints adjacency list representation of graph
-    graph.printGraph();
+    //graph.printGraph();
 
-    // Perform DFS and BFS from node 0
-    graph.DFS(0);
-    graph.BFS(0);
+    //graph.DFS(0);
+    //graph.BFS(0);
+        int choice, start, target;
+    while (true) {
+        cout << "\nCity Transportation Network Menu:\n";
+        cout << "1. View Network\n";
+        cout << "2. Find Reachable Stops (DFS)\n";
+        cout << "3. Find Shortest Path (BFS)\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                graph.printGraph();
+                break;
+            case 2:
+                cout << "Enter starting stop (0-" << SIZE-1 << "): ";
+                cin >> start;
+                if (start >= 0 && start < SIZE)
+                    graph.DFS(start);
+                else
+                    cout << "Invalid stop number.\n";
+                break;
+            case 3:
+                cout << "Enter starting stop (0-" << SIZE-1 << "): ";
+                cin >> start;
+                cout << "Enter target stop (0-" << SIZE-1 << "): ";
+                cin >> target;
+                if (start >= 0 && start < SIZE && target >= 0 && target < SIZE)
+                    graph.BFS(start, target);
+                else
+                    cout << "Invalid stop numbers.\n";
+                break;
+            case 4:
+                cout << "Exiting application.\n";
+                return 0;
+            default:
+                cout << "Invalid choice. Try again.\n";
+        }
+    }
 
     return 0;
 }
